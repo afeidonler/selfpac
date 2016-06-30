@@ -10,10 +10,12 @@ app.get('/pac/:user', function (req, res) {
   console.log(user)
   redisService.hgetall(user).then(function(reply){
     console.log(reply)
+    let unProxy = reply.unProxy;
     let host = reply.host;
     let port = reply.port;
+    let rule = unProxy ==='1'? "DIRECT":`PROXY ${host}:${port}; DIRECT`;
     let tpl =  `function FindProxyForURL(url, host) {
-      return "PROXY ${host}:${port}; DIRECT";
+      return "${rule}";
     };`
     res.send(tpl);
   })
@@ -30,7 +32,8 @@ app.get('/setpac', function (req, res) {
   var port = req.query.port || '8888';
   var host = req.query.host || '127.0.0.1';
   var port = req.query.port || '8888';
-  redisService.hmset(user,['host',host,'port',port]).then(function(reply){
+  var unProxy = req.query.unProxy==='1'?'1':'0';
+  redisService.hmset(user,['host',host,'port',port,'unProxy',unProxy]).then(function(reply){
     res.send('success');
   })
   .catch(function(err){
