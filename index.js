@@ -32,13 +32,51 @@ app.get('/setpac', function (req, res) {
   var port = req.query.port || '8888';
   var host = req.query.host || '127.0.0.1';
   var port = req.query.port || '8888';
+  var pass = req.query.pass;
   var unProxy = req.query.unProxy==='1'?'1':'0';
-  redisService.hmset(user,['host',host,'port',port,'unProxy',unProxy]).then(function(reply){
+  redisService.hgetall(user).then(function(reply){
+    if(!reply.pass ||reply.pass&&pass===reply.pass) {
+      let args = ['host',host,'port',port,'unProxy',unProxy];
+      if(pass){
+        args.push('pass');
+        args.push(pass);
+      }
+      return redisService.hmset(user,args)
+    }
+    else {
+      throw new Error('密码错误')
+    }
+  })
+  .then(function(reply){
     res.send('success');
   })
   .catch(function(err){
     console.log(err)
-    res.send('fail')
+    res.status(400).send(err.message)
+  })
+});
+app.get('/setpass', function (req, res) {
+  var user = req.query.user || 'default';
+  var pass = req.query.pass;
+  var newPass = req.query.newpass;
+  if(!newPass) {
+    return res.status(400).send('请输入密码');
+  }
+  redisService.hgetall(user).then(function(reply){
+    if(!reply.pass ||reply.pass&&pass===reply.pass) {
+      let args = ['pass',newPass];
+      return redisService.hmset(user,args)
+    }
+    else {
+      throw new Error('密码错误')
+    }
+  })
+  .then(function(reply){
+    res.send('success');
+  })
+  .catch(function(err){
+    console.log(err)
+    res.status(400).send(err.message)
   })
 });
 app.listen(3000, function () {
