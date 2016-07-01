@@ -35,7 +35,7 @@ app.get('/setpac', function (req, res) {
   var pass = req.query.pass;
   var unProxy = req.query.unProxy==='1'?'1':'0';
   redisService.hgetall(user).then(function(reply){
-    if(!reply.pass ||reply.pass&&pass===reply.pass) {
+    if(!reply || !reply.pass ||reply.pass&&pass===reply.pass) {
       let args = ['host',host,'port',port,'unProxy',unProxy];
       if(pass){
         args.push('pass');
