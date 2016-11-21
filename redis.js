@@ -1,5 +1,5 @@
 var redis = require("redis"),
-    client = redis.createClient();
+    client = redis.createClient({password:"afeizhang"});
 var isConnect = false;
 
 client.on("error", function (err) {
